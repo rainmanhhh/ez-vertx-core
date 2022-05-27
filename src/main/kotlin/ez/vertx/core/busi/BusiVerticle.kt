@@ -24,12 +24,6 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
    */
   abstract fun path(): String?
 
-  /**
-   * - deal with business and return [ResData]
-   * - you can add/update/delete params in this function
-   */
-  open fun serve(params: JsonObject): ResData = throw NotImplementedError("method `serve` not implemented")
-
   open fun serve(httpMethod: HttpMethod?, params: JsonObject): ResData =
     when (httpMethod) {
       HttpMethod.GET -> get(params)
