@@ -19,8 +19,10 @@ object MessageEx {
 }
 
 /**
+ * @param address eventbus message address
  * @param reqBody should be a [JsonObject], or an object which can be mapped to a [JsonObject]
  * @param resClass should be an object class which can be mapped from a [JsonObject]
+ * @param deliveryOptions eventbus message delivery options
  */
 suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
   address: String,
@@ -46,7 +48,9 @@ suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
 }
 
 /**
+ * @param address eventbus message address
  * @param reqBodyClass should be an object class which can be mapped from a [JsonObject]
+ * @param handler could return a [SimpleRes], or raw response body(which will be used as [SimpleRes.data])
  */
 @Suppress("unused")
 fun <ReqBody> CoroutineScope.receiveMessage(
@@ -71,6 +75,10 @@ fun <ReqBody> CoroutineScope.receiveMessage(
   }
 }
 
+/**
+ * @param address eventbus message address
+ * @param handler could return a [SimpleRes], or raw response body(which will be used as [SimpleRes.data])
+ */
 fun CoroutineScope.receiveMessage(
   address: String,
   handler: suspend (req: Req<JsonObject>) -> Any?
@@ -93,8 +101,9 @@ private fun <ReqBody> CoroutineScope.handleReq(
 ) {
   launch {
     val res = try {
-      val resBody = handler(req)
-      SimpleRes<Any>().apply { data = resBody }
+      val res = handler(req)
+      if (res is SimpleRes<*>) res
+      else SimpleRes<Any>().apply { data = res }
     } catch (e: Throwable) {
       MessageEx.logger.error("handle message error! req: {}", req, e)
       SimpleRes.fromError(e)
