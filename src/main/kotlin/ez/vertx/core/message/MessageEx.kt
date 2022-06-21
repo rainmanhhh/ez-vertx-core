@@ -94,7 +94,11 @@ fun CoroutineScope.receiveMessage(
   address: String,
   handler: suspend (req: Req<JsonObject>) -> Any?
 ) {
-  MessageEx.logger.debug("register message handler for address: {}", address)
+  MessageEx.logger.debug(
+    "register message handler for address: {}, scope: {}",
+    address,
+    javaClass.name
+  )
   val vertx = VertxUtil.vertx()
   vertx.eventBus().consumer<JsonObject>(address) {
     if (MessageEx.logger.isDebugEnabled) {
