@@ -19,7 +19,7 @@ object MessageEx {
 }
 
 /**
- * @param reqBody should be an object which can be mapped to a [JsonObject]
+ * @param reqBody should be a [JsonObject], or an object which can be mapped to a [JsonObject]
  * @param resClass should be an object class which can be mapped from a [JsonObject]
  */
 suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
@@ -34,7 +34,7 @@ suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
     reqBody,
     resClass
   )
-  val jsonReq = JsonObject.mapFrom(reqBody)
+  val jsonReq = if (reqBody is JsonObject) reqBody else JsonObject.mapFrom(reqBody)
   val vertxConfig = ConfigVerticle.get<VertxConfig>("vertx")
   val minTimeout = vertxConfig.minMessageTimeout
   if (deliveryOptions.sendTimeout < minTimeout) deliveryOptions.sendTimeout = minTimeout
