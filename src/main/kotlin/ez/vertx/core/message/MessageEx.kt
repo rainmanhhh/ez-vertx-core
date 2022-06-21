@@ -1,13 +1,14 @@
 package ez.vertx.core.message
 
-import ez.vertx.core.util.VertxUtil
 import ez.vertx.core.config.ConfigVerticle
 import ez.vertx.core.config.VertxConfig
 import ez.vertx.core.message.req.Req
 import ez.vertx.core.message.res.SimpleRes
+import ez.vertx.core.util.VertxUtil
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.Json
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.coroutines.await
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +21,7 @@ object MessageEx {
 
 /**
  * @param address eventbus message address
- * @param reqBody should be a [JsonObject], or an object which can be mapped to a [JsonObject]
+ * @param reqBody should be a [JsonObject] or [JsonArray] (or an object/list which can be mapped to them)
  * @param resClass should be an object class which can be mapped from a [JsonObject]
  * @param deliveryOptions eventbus message delivery options
  */
@@ -36,7 +37,13 @@ suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
     reqBody,
     resClass
   )
-  val jsonReq = if (reqBody is JsonObject) reqBody else JsonObject.mapFrom(reqBody)
+  val jsonReq: Any =
+    when (reqBody) {
+      is JsonObject, is JsonArray -> reqBody
+      is List<*> -> JsonArray(reqBody)
+      null -> JsonObject()
+      else -> JsonObject.mapFrom(reqBody)
+    }
   val vertxConfig = ConfigVerticle.get<VertxConfig>("vertx")
   val minTimeout = vertxConfig.minMessageTimeout
   if (deliveryOptions.sendTimeout < minTimeout) deliveryOptions.sendTimeout = minTimeout
@@ -58,7 +65,11 @@ fun <ReqBody> CoroutineScope.receiveMessage(
   reqBodyClass: Class<ReqBody>,
   handler: suspend (req: Req<ReqBody>) -> Any?
 ) {
-  MessageEx.logger.debug("register message handler for address: {}", address)
+  MessageEx.logger.debug(
+    "register message handler for address: {}, scope: {}",
+    address,
+    javaClass.name
+  )
   val vertx = VertxUtil.vertx()
   vertx.eventBus().consumer<JsonObject>(address) {
     val body = it.body() ?: JsonObject()
@@ -88,7 +99,12 @@ fun CoroutineScope.receiveMessage(
   vertx.eventBus().consumer<JsonObject>(address) {
     if (MessageEx.logger.isDebugEnabled) {
       val httpMethod = it.headers()["httpMethod"]
-      MessageEx.logger.debug("received message at address: {}, httpMethod: {}, body: {}", address, httpMethod, it.body())
+      MessageEx.logger.debug(
+        "received message at address: {}, httpMethod: {}, body: {}",
+        address,
+        httpMethod,
+        it.body()
+      )
     }
     handleReq(it, Req(it.headers(), it.body() ?: JsonObject()), handler)
   }
@@ -99,19 +115,25 @@ private fun <ReqBody> CoroutineScope.handleReq(
   req: Req<ReqBody>,
   handler: suspend (req: Req<ReqBody>) -> Any?
 ) {
+  MessageEx.logger.debug("handling message, address: {}, req: {}", message.address(), req)
   launch {
     val res = try {
       val res = handler(req)
       if (res is SimpleRes<*>) res
       else SimpleRes<Any>().apply { data = res }
     } catch (e: Throwable) {
-      MessageEx.logger.error("handle message error! req: {}", req, e)
+      MessageEx.logger.error(
+        "handle message error! address: {}, req: {}",
+        message.address(),
+        req,
+        e
+      )
       SimpleRes.fromError(e)
     }
     try {
       message.reply(JsonObject.mapFrom(res))
     } catch (e: Throwable) {
-      MessageEx.logger.error("reply message error", e)
+      MessageEx.logger.error("reply message error! address: {}", message.address(), e)
     }
   }
 }

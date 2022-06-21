@@ -38,6 +38,17 @@ open class SimpleRes<Data>() {
 
   companion object {
     fun fromError(e: Throwable) = SimpleRes<Any>(e)
+
+    /**
+     * create a res for sending to next verticle
+     * @param address next verticle eventbus message address
+     * @param body data to send
+     */
+    fun <Body>continueTo(address: String, body: Body) = SimpleRes<Body>().apply {
+      code = HttpResponseStatus.CONTINUE.code()
+      message = address
+      data = body
+    }
   }
 }
 
