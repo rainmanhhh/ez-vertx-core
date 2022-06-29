@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 
 abstract class BusiVerticle<ResData> : CoroutineVerticle() {
-  override suspend fun start() {
+  final override suspend fun start() {
     val p = path() ?: throw NullPointerException(javaClass.name + ".path should not return null")
     if (p == "/" || p.startsWith("/_admin/"))
       throw IllegalArgumentException(
@@ -30,7 +30,7 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
   /**
    * async version of [serve]
    */
-  suspend fun serveAsync(httpMethod: HttpMethod?, params: JsonObject): ResData = serve(httpMethod, params)
+  open suspend fun serveAsync(httpMethod: HttpMethod?, params: JsonObject): ResData = serve(httpMethod, params)
 
   /**
    * handle the http request.
