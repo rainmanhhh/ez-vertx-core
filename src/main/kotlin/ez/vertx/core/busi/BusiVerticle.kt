@@ -1,7 +1,9 @@
 package ez.vertx.core.busi
 
+import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.err.HttpException
 import ez.vertx.core.message.receiveMessage
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.coroutines.CoroutineVerticle
@@ -20,10 +22,36 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
   }
 
   /**
-   * should return the request path(start with `/`). eg: `/getUserList`
+   * http request path(start with `/`). eg: `/getUserList`.
+   * will be used as eventbus message address too. (when [HttpServerVerticle] received a request, it will send a message with this address)
    */
   abstract fun path(): String?
 
+  /**
+   * handle the http request.
+   * if returned [SimpleRes.code] is [HttpResponseStatus.CONTINUE],
+   * the response will be sent to "next" verticle:
+   * [SimpleRes.message] will be used as eventbus message address;
+   * [SimpleRes.data] will be used as request param object(so it should be a [JsonObject],
+   * or an object which could be mapped into [JsonObject]).
+   *
+   * **examples**:
+   * - sending `{a: 1}` to address "foo.bar"(you should register another verticle to handle it)
+   * ```kotlin
+   * return SimpleRes.continueTo("foo.bar", mapOf("a" to 1))
+   * ```
+   * - write `[1, 2, 3]` to client
+   * ```kotlin
+   * return arrayOf(1, 2, 3)
+   * ```
+   * - report 403 error to client
+   * ```kotlin
+   * throw ez.vertx.core.err.HttpException.forbidden("access denied")
+   * ```
+   *
+   * @param params merge url query params with request body(support json or form data)
+   * @return a [SimpleRes] object, or [SimpleRes.data].
+   */
   open fun serve(httpMethod: HttpMethod?, params: JsonObject): ResData =
     when (httpMethod) {
       HttpMethod.GET -> get(params)
