@@ -17,7 +17,7 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
       )
     receiveMessage(p) {
       val httpMethod = it.headers["httpMethod"]?.let(HttpMethod::valueOf)
-      serve(httpMethod, it.body)
+      serveAsync(httpMethod, it.body)
     }
   }
 
@@ -26,6 +26,11 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
    * will be used as eventbus message address too. (when [HttpServerVerticle] received a request, it will send a message with this address)
    */
   abstract fun path(): String?
+
+  /**
+   * async version of [serve]
+   */
+  suspend fun serveAsync(httpMethod: HttpMethod?, params: JsonObject): ResData = serve(httpMethod, params)
 
   /**
    * handle the http request.
