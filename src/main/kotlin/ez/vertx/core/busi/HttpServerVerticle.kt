@@ -5,7 +5,7 @@ import ez.vertx.core.config.HttpServerConfig
 import ez.vertx.core.err.HttpException
 import ez.vertx.core.handler.DeployHandler
 import ez.vertx.core.message.res.SimpleRes
-import ez.vertx.core.paramsAsJson
+import ez.vertx.core.util.paramsAsJson
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.http.HttpMethod

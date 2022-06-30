@@ -5,6 +5,7 @@ import ez.vertx.core.config.VertxConfig
 import ez.vertx.core.message.req.Req
 import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.util.VertxUtil
+import ez.vertx.core.util.httpMethod
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.Json

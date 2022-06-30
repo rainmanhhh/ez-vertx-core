@@ -1,4 +1,4 @@
-package ez.vertx.core
+package ez.vertx.core.util
 
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext

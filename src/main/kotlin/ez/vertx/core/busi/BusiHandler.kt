@@ -1,12 +1,12 @@
 package ez.vertx.core.busi
 
 import ez.vertx.core.handler.CoroutineHandler
-import ez.vertx.core.message.httpMethod
-import ez.vertx.core.message.path
 import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.message.res.check
 import ez.vertx.core.message.sendMessage
-import ez.vertx.core.paramsAsJson
+import ez.vertx.core.util.httpMethod
+import ez.vertx.core.util.paramsAsJson
+import ez.vertx.core.util.path
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.http.HttpHeaders
