@@ -1,6 +1,7 @@
 package ez.vertx.core.busi
 
 import ez.vertx.core.handler.CoroutineHandler
+import ez.vertx.core.message.httpMethod
 import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.message.res.check
 import ez.vertx.core.message.sendMessage
@@ -28,7 +29,9 @@ class BusiHandler(scope: CoroutineScope) : CoroutineHandler(scope) {
     val httpMethod = ctx.request().method().name()
     var address = ctx.normalizedPath()
     var reqBody: Any = ctx.paramsAsJson()
-    val deliveryOptions = DeliveryOptions().addHeader("httpMethod", httpMethod)
+    val deliveryOptions = DeliveryOptions().apply {
+      headers.httpMethod = httpMethod
+    }
     var res: SimpleRes<*>
     do {
       logger.debug("req path: {}, httpMethod: {}, reqBody: {}", address, httpMethod, reqBody)

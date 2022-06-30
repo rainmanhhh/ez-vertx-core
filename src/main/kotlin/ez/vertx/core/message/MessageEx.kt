@@ -71,10 +71,10 @@ fun <ReqBody> CoroutineScope.receiveMessage(
     javaClass.name
   )
   val vertx = VertxUtil.vertx()
-  vertx.eventBus().consumer<JsonObject>(address) {
+  vertx.eventBus().consumer(address) {
     val body = it.body() ?: JsonObject()
     if (MessageEx.logger.isDebugEnabled) {
-      val httpMethod = it.headers()["httpMethod"]
+      val httpMethod = it.headers().httpMethod
       MessageEx.logger.debug(
         "received message at address: {}, httpMethod: {}, body: {}",
         address,
@@ -100,9 +100,9 @@ fun CoroutineScope.receiveMessage(
     javaClass.name
   )
   val vertx = VertxUtil.vertx()
-  vertx.eventBus().consumer<JsonObject>(address) {
+  vertx.eventBus().consumer(address) {
     if (MessageEx.logger.isDebugEnabled) {
-      val httpMethod = it.headers()["httpMethod"]
+      val httpMethod = it.headers().httpMethod
       MessageEx.logger.debug(
         "received message at address: {}, httpMethod: {}, body: {}",
         address,

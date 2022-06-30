@@ -2,6 +2,7 @@ package ez.vertx.core.busi
 
 import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.err.HttpException
+import ez.vertx.core.message.httpMethod
 import ez.vertx.core.message.receiveMessage
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpMethod
@@ -16,7 +17,7 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
         javaClass.name + " should not use `/` or `/_admin/**/*` path which are reserved by system handlers"
       )
     receiveMessage(p) {
-      val httpMethod = it.headers["httpMethod"]?.let(HttpMethod::valueOf)
+      val httpMethod = it.headers.httpMethod?.let(HttpMethod::valueOf)
       serveAsync(httpMethod, it.body)
     }
   }
