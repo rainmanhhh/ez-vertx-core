@@ -63,7 +63,9 @@ class HttpServerVerticle : ConfigVerticle<HttpServerConfig>() {
     router.get("/").handler(this::handleAdminHtml)
     router.post("/_admin/deploy").handler(DeployHandler(this))
     router.post("/_admin/*").handler(this::handleAdmin)
-    router.route().handler(BusiHandler(this)).failureHandler(this::handleError)
+    router.route().handler(
+      BusiHandler(this, configValue.busiAddress)
+    ).failureHandler(this::handleError)
     val server = httpServer.requestHandler(router).listen().await()
     logger.info("httpServer started at {}", server.actualPort())
   }

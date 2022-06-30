@@ -1,16 +1,17 @@
 package ez.vertx.core.busi
 
-import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.err.HttpException
 import ez.vertx.core.message.httpMethod
+import ez.vertx.core.message.path
 import ez.vertx.core.message.receiveMessage
+import ez.vertx.core.message.res.SimpleRes
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 
 abstract class BusiVerticle<ResData> : CoroutineVerticle() {
-  final override suspend fun start() {
+  override suspend fun start() {
     val p = path() ?: throw NullPointerException(javaClass.name + ".path should not return null")
     if (p == "/" || p.startsWith("/_admin/"))
       throw IllegalArgumentException(
@@ -18,7 +19,8 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
       )
     receiveMessage(p) {
       val httpMethod = it.headers.httpMethod?.let(HttpMethod::valueOf)
-      serveAsync(httpMethod, it.body)
+      val path = it.headers.path
+      serveAsync(httpMethod, path, it.body)
     }
   }
 
@@ -29,9 +31,10 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
   abstract fun path(): String?
 
   /**
-   * async version of [serve]
+   * async version of [serve]. if override this function, [get], [post], [put], [delete], [patch] will be ignored
    */
-  open suspend fun serveAsync(httpMethod: HttpMethod?, params: JsonObject): ResData = serve(httpMethod, params)
+  open suspend fun serveAsync(httpMethod: HttpMethod?, path: String?, params: JsonObject): ResData =
+    serve(httpMethod, path, params)
 
   /**
    * handle the http request.
@@ -55,43 +58,47 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
    * throw ez.vertx.core.err.HttpException.forbidden("access denied")
    * ```
    *
+   * @param path request path. valid only when [ez.vertx.core.config.HttpServerConfig.busiAddress] is not empty
    * @param params merge url query params with request body(support json or form data)
    * @return a [SimpleRes] object, or [SimpleRes.data].
    */
-  open fun serve(httpMethod: HttpMethod?, params: JsonObject): ResData =
+  open fun serve(httpMethod: HttpMethod?, path: String?, params: JsonObject): ResData =
     when (httpMethod) {
-      HttpMethod.GET -> get(params)
-      HttpMethod.POST -> post(params)
-      HttpMethod.DELETE -> delete(params)
-      HttpMethod.PUT -> put(params)
-      HttpMethod.PATCH -> patch(params)
+      HttpMethod.GET -> get(path, params)
+      HttpMethod.POST -> post(path, params)
+      HttpMethod.DELETE -> delete(path, params)
+      HttpMethod.PUT -> put(path, params)
+      HttpMethod.PATCH -> patch(path, params)
       else -> throw HttpException.methodNotAllowed(httpMethod)
     }
 
   /**
    * like [serve] but only deal with [HttpMethod.GET]
    */
-  open fun get(params: JsonObject): ResData = throw HttpException.methodNotAllowed(HttpMethod.GET)
+  open fun get(path: String?, params: JsonObject): ResData =
+    throw HttpException.methodNotAllowed(HttpMethod.GET)
 
   /**
    * like [serve] but only deal with [HttpMethod.POST]
    */
-  open fun post(params: JsonObject): ResData = throw HttpException.methodNotAllowed(HttpMethod.POST)
+  open fun post(path: String?, params: JsonObject): ResData =
+    throw HttpException.methodNotAllowed(HttpMethod.POST)
 
   /**
    * like [serve] but only deal with [HttpMethod.DELETE]
    */
-  open fun delete(params: JsonObject): ResData =
+  open fun delete(path: String?, params: JsonObject): ResData =
     throw HttpException.methodNotAllowed(HttpMethod.DELETE)
 
   /**
    * like [serve] but only deal with [HttpMethod.PUT]
    */
-  open fun put(params: JsonObject): ResData = throw HttpException.methodNotAllowed(HttpMethod.PUT)
+  open fun put(path: String?, params: JsonObject): ResData =
+    throw HttpException.methodNotAllowed(HttpMethod.PUT)
 
   /**
    * like [serve] but only deal with [HttpMethod.PATCH]
    */
-  open fun patch(params: JsonObject): ResData =
+  open fun patch(path: String?, params: JsonObject): ResData =
     throw HttpException.methodNotAllowed(HttpMethod.PATCH)
 }
