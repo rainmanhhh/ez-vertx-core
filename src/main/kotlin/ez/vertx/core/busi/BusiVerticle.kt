@@ -1,10 +1,10 @@
 package ez.vertx.core.busi
 
 import ez.vertx.core.err.HttpException
-import ez.vertx.core.message.httpMethod
-import ez.vertx.core.message.path
 import ez.vertx.core.message.receiveMessage
 import ez.vertx.core.message.res.SimpleRes
+import ez.vertx.core.util.httpMethod
+import ez.vertx.core.util.path
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
