@@ -16,7 +16,7 @@ open class SimpleRes<Data>() {
       message = e.message
     } else {
       code = HttpResponseStatus.INTERNAL_SERVER_ERROR.code()
-      message = e.message
+      message = "${e.javaClass.name}:${e.message}"
     }
   }
 

@@ -33,7 +33,7 @@ suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
   deliveryOptions: DeliveryOptions = DeliveryOptions()
 ): Res {
   MessageEx.logger.debug(
-    "send message to address: {}, reqBody: {}, resClass: {}",
+    "send message to: {}, reqBody: {}, resClass: {}",
     address,
     reqBody,
     resClass
@@ -45,13 +45,13 @@ suspend fun <ReqBody, Res : SimpleRes<*>> sendMessage(
       null -> JsonObject()
       else -> JsonObject.mapFrom(reqBody)
     }
-  val vertxConfig = ConfigVerticle.get<VertxConfig>("vertx")
-  val minTimeout = vertxConfig.minMessageTimeout
+  val vertx: VertxConfig by ConfigVerticle
+  val minTimeout = vertx.minMessageTimeout
   if (deliveryOptions.sendTimeout < minTimeout) deliveryOptions.sendTimeout = minTimeout
   val resBody = VertxUtil.vertx().eventBus().request<JsonObject>(
     address, jsonReq, deliveryOptions
   ).await().body()
-  MessageEx.logger.debug("resBody: {}", resBody)
+  MessageEx.logger.debug("sendMessage resBody: {}", resBody)
   return resBody.mapTo(resClass)
 }
 
@@ -120,7 +120,6 @@ private fun <ReqBody> CoroutineScope.handleReq(
   req: Req<ReqBody>,
   handler: suspend (req: Req<ReqBody>) -> Any?
 ) {
-  MessageEx.logger.debug("handling message, address: {}, req: {}", message.address(), req)
   launch {
     val res = try {
       val res = handler(req)

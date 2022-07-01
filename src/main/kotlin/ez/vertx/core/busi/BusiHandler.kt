@@ -1,5 +1,6 @@
 package ez.vertx.core.busi
 
+import ez.vertx.core.err.HttpException
 import ez.vertx.core.handler.CoroutineHandler
 import ez.vertx.core.message.res.SimpleRes
 import ez.vertx.core.message.res.check
@@ -50,7 +51,10 @@ class BusiHandler(
       res = sendMessage(address, reqBody, SimpleRes::class.java, deliveryOptions)
       val resCode = res.code ?: 0
       if (resCode == HttpResponseStatus.CONTINUE.code()) {
-        address = if (res.message.isNullOrBlank()) address else res.message
+        val nextAddress = res.message
+        if (nextAddress.isNullOrBlank()) throw NullPointerException("nextAddress is null or empty")
+        if (nextAddress == address) throw HttpException.internalErr("nextAddress is the same as current: $address")
+        address = nextAddress
         val resData = res.data
         reqBody =
           when (resData) {
@@ -58,7 +62,7 @@ class BusiHandler(
             is JsonObject -> resData
             else -> JsonObject.mapFrom(resData)
           }
-        logger.debug("next address: {}, reqBody: {}", path, reqBody)
+        logger.debug("next address: {}, reqBody: {}", address, reqBody)
       }
     } while (resCode == HttpResponseStatus.CONTINUE.code())
     val resData = res.check()
