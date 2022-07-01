@@ -37,24 +37,24 @@ class MainVerticle : CoroutineVerticle() {
     // use VertxOptions to create new Vertx instance
     val vertxOptions: VertxOptions = vertxConfigVerticle.configValue
     val newVertx = Vertx.vertx(vertxOptions)
-    // auto deploy verticles
-    for (verticle in ServiceLoader.load(AutoDeployVerticle::class.java)) {
-      logger.info("auto deploy verticle: {}", verticle)
-      newVertx.deployVerticle(verticle).await()
-    }
     // http server verticle is special: use event loop pool size as instance amount
     newVertx.deployVerticle(
       HttpServerVerticle::class.java,
       DeploymentOptions()
         .setInstances(vertxOptions.eventLoopPoolSize)
     ).await()
+    // auto deploy verticles
+    for (verticle in ServiceLoader.load(AutoDeployVerticle::class.java)) {
+      logger.info("auto deploy verticle: {}", verticle)
+      newVertx.deployVerticle(verticle).await()
+    }
     // deploy dynamic verticles
     DeployHandler.deployDir(newVertx, "verticles")
-    // close old Vertx instance
+    // end
+    logger.info("MainVerticle started")
+    // close old Vertx instance. should not use await here because waiting in start will block close
     vertx.close {
       logger.info("launcher vertx instance closed")
     }
-    // end
-    logger.info("MainVerticle started")
   }
 }

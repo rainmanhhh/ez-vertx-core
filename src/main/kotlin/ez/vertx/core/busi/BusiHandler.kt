@@ -8,6 +8,7 @@ import ez.vertx.core.util.httpMethod
 import ez.vertx.core.util.paramsAsJson
 import ez.vertx.core.util.path
 import io.netty.handler.codec.http.HttpResponseStatus
+import io.vertx.core.MultiMap
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.json.Json
@@ -35,6 +36,7 @@ class BusiHandler(
     var reqBody: Any = ctx.paramsAsJson()
     logger.debug("req path: {}, httpMethod: {}, reqBody: {}", path, httpMethod, reqBody)
     val deliveryOptions = DeliveryOptions().apply {
+      headers = MultiMap.caseInsensitiveMultiMap()
       headers.httpMethod = httpMethod
     }
     var address =

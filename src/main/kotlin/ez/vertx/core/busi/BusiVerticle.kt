@@ -10,6 +10,9 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 
+/**
+ * @param ResData see [serve]
+ */
 abstract class BusiVerticle<ResData> : CoroutineVerticle() {
   override suspend fun start() {
     val p = path() ?: throw NullPointerException(javaClass.name + ".path should not return null")
@@ -38,10 +41,10 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
 
   /**
    * handle the http request.
-   * if returned [SimpleRes.code] is [HttpResponseStatus.CONTINUE],
+   * if return a [SimpleRes] and it's code is [HttpResponseStatus.CONTINUE],
    * the response will be sent to "next" verticle:
-   * [SimpleRes.message] will be used as eventbus message address;
-   * [SimpleRes.data] will be used as request param object(so it should be a [JsonObject],
+   * - [SimpleRes.message] will be used as eventbus message address;
+   * - [SimpleRes.data] will be used as request param object(so it should be a [JsonObject],
    * or an object which could be mapped into [JsonObject]).
    *
    * **examples**:
@@ -60,7 +63,7 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
    *
    * @param path request path. valid only when [ez.vertx.core.config.HttpServerConfig.busiAddress] is not empty
    * @param params merge url query params with request body(support json or form data)
-   * @return a [SimpleRes] object, or [SimpleRes.data].
+   * @return a [SimpleRes], or data field of it
    */
   open fun serve(httpMethod: HttpMethod?, path: String?, params: JsonObject): ResData =
     when (httpMethod) {
