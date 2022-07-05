@@ -4,8 +4,6 @@ import io.vertx.core.VertxOptions
 import io.vertx.core.eventbus.DeliveryOptions
 
 class VertxConfig : VertxOptions() {
-  /**
-   * eventBus message min delivery timeout, in ms
-   */
+  @Description("eventBus message min delivery timeout, in ms")
   var minMessageTimeout = DeliveryOptions.DEFAULT_TIMEOUT
 }

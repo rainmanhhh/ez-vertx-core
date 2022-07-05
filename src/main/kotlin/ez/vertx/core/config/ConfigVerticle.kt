@@ -66,19 +66,43 @@ abstract class ConfigVerticle<ConfigType : Any> : AutoDeployVerticle, CoroutineV
     get(childName) as ObjectNode? ?: putObject(childName)
 
   private suspend fun generateConfigSchema(configDir: String, fileName: String) {
-    val configBuilder =
-      SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, OptionPreset.PLAIN_JSON)
+    val cv = configValue
+    val configBuilder = SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, OptionPreset.PLAIN_JSON)
+    val typeCache = mutableMapOf<Class<*>, Any>()
+    configBuilder.forFields()
+      .withDefaultResolver {
+        it.findGetter()?.let { getter ->
+          val type = getter.declaringTypeMembers.mainTypeAndOverrides()[0].erasedType
+          val method = getter.rawMember
+          if (type == cv.javaClass) method.invoke(cv)
+          else {
+            val instance = typeCache.computeIfAbsent(type) {
+              type.getDeclaredConstructor().newInstance()
+            }
+            method.invoke(instance)
+          }
+        }
+      }
+      .withDescriptionResolver {
+        it.rawMember.getAnnotation(Description::class.java)?.value
+      }
+      .withEnumResolver {
+        val erasedType = it.type.erasedType
+        if (erasedType.isEnum) {
+          erasedType.enumConstants.toList()
+        } else null
+      }
     val config = configBuilder.build()
     val generator = SchemaGenerator(config)
-    val jsonSchema = generator.generateSchema(configValue.javaClass)
+    val jsonSchema = generator.generateSchema(cv.javaClass)
 
     val defsNode = jsonSchema.getObj("definitions")
-    defsNode.putObject(configValue.javaClass.name)
+    defsNode.putObject(cv.javaClass.name)
       .put("type", "object")
       .putPOJO("properties", jsonSchema.getObj("properties"))
     jsonSchema.putObject("properties")
       .putObject(key)
-      .put("\$ref", "#/definitions/" + configValue.javaClass.name)
+      .put("\$ref", "#/definitions/" + cv.javaClass.name)
 
     val configSchemaStr = jsonSchema.toPrettyString()
     val vertx = VertxUtil.vertx()
