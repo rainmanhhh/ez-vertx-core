@@ -17,6 +17,9 @@ fun MultiMap.toJson() = JsonObject().also {
 
 private const val httpMethodKey = "httpMethod"
 
+/**
+ * original request method. saved in [io.vertx.core.eventbus.DeliveryOptions.headers]
+ */
 var MultiMap.httpMethod: String?
   get() = get(httpMethodKey)
   set(value) {
@@ -26,6 +29,9 @@ var MultiMap.httpMethod: String?
 
 private const val pathKey = "path"
 
+/**
+ * original request path. saved in [io.vertx.core.eventbus.DeliveryOptions.headers]
+ */
 var MultiMap.path: String?
   get() = get(pathKey)
   set(value) {

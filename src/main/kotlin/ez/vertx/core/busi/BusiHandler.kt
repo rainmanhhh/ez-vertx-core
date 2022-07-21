@@ -40,12 +40,8 @@ class BusiHandler(
       headers = MultiMap.caseInsensitiveMultiMap()
       headers.httpMethod = httpMethod
     }
-    var address =
-      if (busiAddress.isEmpty()) path
-      else { // use common busi address
-        deliveryOptions.headers.path = path
-        busiAddress
-      }
+    deliveryOptions.headers.path = path
+    var address = busiAddress.ifEmpty { path }
     var res: SimpleRes<*>
     do {
       res = sendMessage(address, reqBody, SimpleRes::class.java, deliveryOptions)

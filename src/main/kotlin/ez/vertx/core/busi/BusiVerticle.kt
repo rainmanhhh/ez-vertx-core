@@ -21,8 +21,8 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
         javaClass.name + " should not use `/` or `/_admin/**/*` path which are reserved by system handlers"
       )
     receiveMessage(p) {
-      val httpMethod = it.headers.httpMethod?.let(HttpMethod::valueOf)
-      val path = it.headers.path
+      val httpMethod = it.headers.httpMethod!!.let(HttpMethod::valueOf)
+      val path = it.headers.path!!
       serveAsync(httpMethod, path, it.body)
     }
   }
@@ -36,7 +36,7 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
   /**
    * async version of [serve]. if override this function, [get], [post], [put], [delete], [patch] will be ignored
    */
-  open suspend fun serveAsync(httpMethod: HttpMethod?, path: String?, params: JsonObject): ResData =
+  open suspend fun serveAsync(httpMethod: HttpMethod, path: String, params: JsonObject): ResData =
     serve(httpMethod, path, params)
 
   /**
@@ -65,7 +65,7 @@ abstract class BusiVerticle<ResData> : CoroutineVerticle() {
    * @param params merge url query params with request body(support json or form data)
    * @return a [SimpleRes], or data field of it
    */
-  open fun serve(httpMethod: HttpMethod?, path: String?, params: JsonObject): ResData =
+  open fun serve(httpMethod: HttpMethod, path: String, params: JsonObject): ResData =
     when (httpMethod) {
       HttpMethod.GET -> get(path, params)
       HttpMethod.POST -> post(path, params)
