@@ -9,8 +9,8 @@ import io.vertx.core.json.JsonObject
  */
 fun MultiMap.toJson() = JsonObject().also {
   for (entry in entries()) {
-    if (!entry.value.isNullOrBlank()) {
-      it.put(entry.key, entry.value)
+    entry.value?.let { value ->
+      it.put(entry.key, value)
     }
   }
 }
