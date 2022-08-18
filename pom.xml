@@ -5,18 +5,18 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>ez-vertx-core</artifactId>
-  <version>1.0.12</version>
+  <version>1.0.13</version>
   <parent>
     <groupId>com.github.rainmanhhh</groupId>
     <artifactId>ez-vertx-parent</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>com.github.victools</groupId>
       <artifactId>jsonschema-generator</artifactId>
-      <version>4.24.2</version>
+      <version>4.25.0</version>
     </dependency>
   </dependencies>
 
